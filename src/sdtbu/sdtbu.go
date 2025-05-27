@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url" // 導入 url 套件，用於構建表單數據
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -70,6 +71,89 @@ func NewClientSession() (*ClientSession, error) {
 	}, nil
 }
 
+// NextClass 根據課程列表對課程進行排序，並返回排序後的第一個課程名稱。
+// classListJSON 是一個包含課程資訊的列表，每個課程資訊是一個 map。
+// "SKXQ" (上課星期) 和 "SKJC" (上課節次) 預期為整數型，但會處理可能來自 JSON 的 float64 類型。
+// 排序規則：首先按 SKXQ (上課星期) 升序排序，然後按 SKJC (上課節次) 升序排序。
+func (cs *ClientSession) NextClass(classListJSON []map[string]interface{}) string {
+	if len(classListJSON) == 0 {
+		return "沒有課程資訊"
+	}
+
+	// 使用 sort.Slice 對 classListJSON 進行排序
+	sort.Slice(classListJSON, func(i, j int) bool {
+		// 獲取第 i 個課程的 SKXQ 和 SKJC，並進行類型斷言
+		// 由於 JSON 解析可能將數字解析為 float64，我們首先斷言為 float64，然後轉換為 int
+		skxq_i_float, ok_i_skxq := classListJSON[i]["SKXQ"].(float64)
+		skxq_i := 0
+		if ok_i_skxq {
+			skxq_i = int(skxq_i_float)
+		} else {
+			// 錯誤處理：如果類型不匹配，打印錯誤並假設一個值以避免崩潰
+			fmt.Printf("錯誤: classListJSON[%d][\"SKXQ\"] 不是 float64，實際類型為 %T。\n", i, classListJSON[i]["SKXQ"])
+		}
+
+		skjc_i_float, ok_i_skjc := classListJSON[i]["SKJC"].(float64)
+		skjc_i := 0
+		if ok_i_skjc {
+			skjc_i = int(skjc_i_float)
+		} else {
+			fmt.Printf("錯誤: classListJSON[%d][\"SKJC\"] 不是 float64，實際類型為 %T。\n", i, classListJSON[i]["SKJC"])
+		}
+
+		// 獲取第 j 個課程的 SKXQ 和 SKJC，並進行類型斷言
+		skxq_j_float, ok_j_skxq := classListJSON[j]["SKXQ"].(float64)
+		skxq_j := 0
+		if ok_j_skxq {
+			skxq_j = int(skxq_j_float)
+		} else {
+			fmt.Printf("錯誤: classListJSON[%d][\"SKXQ\"] 不是 float64，實際類型為 %T。\n", j, classListJSON[j]["SKXQ"])
+		}
+
+		skjc_j_float, ok_j_skjc := classListJSON[j]["SKJC"].(float64)
+		skjc_j := 0
+		if ok_j_skjc {
+			skjc_j = int(skjc_j_float)
+		} else {
+			fmt.Printf("錯誤: classListJSON[%d][\"SKJC\"] 不是 float64，實際類型為 %T。\n", j, classListJSON[j]["SKJC"])
+		}
+
+		// 首先比較星期 (SKXQ)
+		if skxq_i != skxq_j {
+			return skxq_i < skxq_j
+		}
+		// 如果星期相同，則比較節次 (SKJC)
+		return skjc_i < skjc_j
+	})
+
+	// 打印排序後的 classList 內容 (用於調試)
+	fmt.Println("已排序的 classList 內容:")
+	for i, class := range classListJSON {
+		// 確保 KCMC 是字符串類型
+		kcmc, ok := class["KCMC"].(string)
+		if !ok {
+			kcmc = "未知課程名稱" // 如果 KCMC 不是字符串，使用預設值
+		}
+		// 由於 SKXQ 和 SKJC 可能仍然是 float64，我們再次嘗試斷言為 float64 並轉換為 int 進行顯示
+		skxq_float, _ := class["SKXQ"].(float64)
+		skxq := int(skxq_float)
+		skjc_float, _ := class["SKJC"].(float64)
+		skjc := int(skjc_float)
+		fmt.Printf("課程 %d: %s (星期: %d, 節次: %d)\n", i+1, kcmc, skxq, skjc)
+	}
+
+	// 返回排序後的第一個課程的名稱，假設 "KCMC" 是課程名稱的鍵
+	// 確保 KCMC 存在且是字符串
+	nextClass, ok := classListJSON[0]["KCMC"].(string)
+	if !ok {
+		return "錯誤: 排序後的第一個課程 KCMC 鍵未找到或不是字符串。"
+	}
+
+	// 返回排序後的第一節課的名稱
+	return fmt.Sprintf("排序後的第一節課是: %s", nextClass)
+}
+
+// ParseClassList 函數用於解析 GetClassbyTime 的 JSON 響應結構
 // 解析 GetClassbyTime 的 JSON 響應結構
 // 這裡假設 classList 是一個包含課程資訊的列表，每個課程資訊是一個物件
 func (cs *ClientSession) ParseClassList(jsonData string) ([]map[string]interface{}, error) {
@@ -82,10 +166,10 @@ func (cs *ClientSession) ParseClassList(jsonData string) ([]map[string]interface
 		return nil, fmt.Errorf(Red+"SDTBU: Error unmarshalling classList string: %v"+Reset, err)
 	}
 	// 打印解析後的 classList 內容
-	fmt.Println(White + "SDTBU: Parsed classList content:" + Reset)
-	for i, class := range classList {
-		fmt.Printf("Class %d: %+v\n", i+1, class["KCMC"])
-	}
+	// fmt.Println(White + "SDTBU: Parsed classList content:" + Reset)
+	// for i, class := range classList {
+	// 	fmt.Printf("Class %d: %+v\n", i+1, class["KCMC"])
+	// }
 	return classList, nil
 }
 

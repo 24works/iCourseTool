@@ -34,5 +34,6 @@ func main() {
 
 	session.GetClassbyUserInfo()
 	session.GetClassbyTime()
-	session.ParseClassList(session.ClassListbyTimeString)
+	CLIST, _ := session.ParseClassList(session.ClassListbyTimeString)
+	session.NextClass(CLIST)
 }
