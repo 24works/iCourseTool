@@ -34,4 +34,5 @@ func main() {
 
 	session.GetClassbyUserInfo()
 	session.GetClassbyTime()
+	session.ParseClassList(session.ClassListbyTimeString)
 }

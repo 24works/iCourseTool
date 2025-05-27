@@ -70,6 +70,25 @@ func NewClientSession() (*ClientSession, error) {
 	}, nil
 }
 
+// 解析 GetClassbyTime 的 JSON 響應結構
+// 這裡假設 classList 是一個包含課程資訊的列表，每個課程資訊是一個物件
+func (cs *ClientSession) ParseClassList(jsonData string) ([]map[string]interface{}, error) {
+	// 聲明一個 Go 切片變量，用於存儲解析後的 classList 內容
+	var classList []map[string]interface{}
+	// 使用 json.Unmarshal 將字符串變量解析到 Go 切片中
+	err := json.Unmarshal([]byte(jsonData), &classList)
+	if err != nil {
+		fmt.Println(Red+"Error unmarshalling classList string:", err, Reset)
+		return nil, fmt.Errorf(Red+"SDTBU: Error unmarshalling classList string: %v"+Reset, err)
+	}
+	// 打印解析後的 classList 內容
+	fmt.Println(White + "SDTBU: Parsed classList content:" + Reset)
+	for i, class := range classList {
+		fmt.Printf("Class %d: %+v\n", i+1, class["KCMC"])
+	}
+	return classList, nil
+}
+
 // GetClassbyTime 函數用於發送 POST 請求獲取用戶的本周課程資訊
 func (cs *ClientSession) GetClassbyTime() error {
 	fmt.Println(Blue + "SDTBU: Fetching class information by time..." + Reset)
@@ -99,7 +118,7 @@ func (cs *ClientSession) GetClassbyTime() error {
 	requestBody := map[string]interface{}{
 		"schoolYear": "2024-2025",
 		"semester":   "2",
-		"learnWeek":  "17",
+		"learnWeek":  "14",
 		"classList":  classListContent, // 使用之前獲取的課程列表
 	}
 
@@ -138,8 +157,8 @@ func (cs *ClientSession) GetClassbyTime() error {
 	cs.ClassListbyTimeString = string(bodyBytes)
 
 	// 打印響應內容
-	fmt.Println(White + "SDTBU: GetClassbyTime response content:" + Reset)
-	fmt.Println(string(bodyBytes))
+	// fmt.Println(White + "SDTBU: GetClassbyTime response content:" + Reset)
+	// fmt.Println(string(bodyBytes))
 
 	// 您可以在這裡進一步解析 JSON 響應，例如：
 	// var classInfo map[string]interface{}
