@@ -1,14 +1,13 @@
 package main
 
 import (
-	ASNIColor "CourseTool/ASNIcolor"
+	ASNIColor "CourseTool/asnicolor"
+	_ "CourseTool/configloader" // Import for side effect: load .env
 	"CourseTool/sdtbu"
 	"CourseTool/wxpush"
 	"fmt"
 	"log"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -22,13 +21,16 @@ func main() {
   \_____|\___/  \__,_||_|   |___/ \___||_| \___/  \___/ |_|
                                                            
 =============================================================
+作者：Richard Miku
+版本：v1.0.0
+説明：基於Golang的課程工具，提供課程提醒功能。
+使用：請確保已正確配置環境變數，然後運行此程序。
+網址：https://www.ric.moe
+GitHub：https://github.com/RichardMiku/CourseTool
+=============================================================
 	` + ASNIColor.Reset)
 
-	// 載入 .env 檔案
-	err := godotenv.Load("CourseTool.env") // 假設 .env 檔案在專案根目錄
-	if err != nil {
-		log.Println(ASNIColor.Yellow+"Warning: Error loading CourseTool.env file, will try to use existing environment variables. Error: "+ASNIColor.Reset, err)
-	}
+	// The .env file loading is now handled by the configloader package's init()
 
 	sdtbu.Init() // 初始化您的套件
 
