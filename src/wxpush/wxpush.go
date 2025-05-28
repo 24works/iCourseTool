@@ -19,6 +19,7 @@ var (
 	courseTemplateID string
 )
 
+// init loads WeChat configuration from environment variables and terminates the program if any required variable is missing.
 func init() {
 	appID = os.Getenv("WXPUSH_APP_ID")
 	appSecret = os.Getenv("WXPUSH_APP_SECRET")
@@ -45,7 +46,8 @@ type SendMessageResponse struct {
 	MsgID   int64  `json:"msgid"`
 }
 
-// getAccessToken 函式用於獲取微信公眾號的 access_token
+// GetAccessToken retrieves an access token from the WeChat API using the configured app credentials.
+// Returns the access token string if successful, or an error if the request fails or the response contains an error code.
 func GetAccessToken() (string, error) {
 	url := fmt.Sprintf("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s", appID, appSecret)
 
@@ -110,7 +112,8 @@ type TemplateMessage struct {
 	Data       TemplateData `json:"data"`
 }
 
-// SendCourseReminder 函式用於發送課程提醒模板消息
+// SendCourseReminder sends a WeChat template message as a course reminder using the provided access token and course details.
+// It returns an error if the message fails to send or if there are issues with the request or response parsing.
 func SendCourseReminder(accessToken string, data CourseReminderData) error {
 	// 獲取當前時間，用於 NowTime 欄位
 	currentTime := time.Now().Format("2006年01月02日 15:04")
