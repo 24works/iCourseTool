@@ -1,4 +1,4 @@
-package ASNIColor
+package asnicolor
 
 // ANSI 顏色代碼常量
 const (
