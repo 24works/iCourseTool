@@ -31,4 +31,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/${{ env.REPO_NAME }}:dev
+          tags: ${{ secrets.DOCKER_USERNAME }}/coursetool:dev
