@@ -4,19 +4,31 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io" // 導入 io 套件
+	"io"
+	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
-// 從測試號信息獲取
-const (
-	appID     = "" // 替換為你的 appID
-	appSecret = "" // 替換為你的 appSecret
-	openID    = "" // 替換為你的 openID
-	// TODO: 請務必替換為你的課程提醒模板ID
-	courseTemplateID = "" // 替換為你的課程提醒模板ID
+// 微信配置變數，將從環境變數載入
+var (
+	appID            string
+	appSecret        string
+	openID           string
+	courseTemplateID string
 )
+
+func init() {
+	appID = os.Getenv("WXPUSH_APP_ID")
+	appSecret = os.Getenv("WXPUSH_APP_SECRET")
+	openID = os.Getenv("WXPUSH_OPEN_ID")
+	courseTemplateID = os.Getenv("WXPUSH_COURSE_TEMPLATE_ID")
+
+	if appID == "" || appSecret == "" || openID == "" || courseTemplateID == "" {
+		log.Fatalf("WXPUSH 錯誤: 一個或多個 WXPUSH 環境變數 (WXPUSH_APP_ID, WXPUSH_APP_SECRET, WXPUSH_OPEN_ID, WXPUSH_COURSE_TEMPLATE_ID) 未設定。")
+	}
+}
 
 // AccessTokenResponse 結構用於解析獲取 access_token 的回應
 type AccessTokenResponse struct {

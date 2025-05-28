@@ -6,6 +6,9 @@ import (
 	"CourseTool/wxpush"
 	"fmt"
 	"log"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -21,6 +24,12 @@ func main() {
 =============================================================
 	` + ASNIColor.Reset)
 
+	// 載入 .env 檔案
+	err := godotenv.Load("CourseTool.env") // 假設 .env 檔案在專案根目錄
+	if err != nil {
+		log.Println(ASNIColor.Yellow+"Warning: Error loading CourseTool.env file, will try to use existing environment variables. Error: "+ASNIColor.Reset, err)
+	}
+
 	sdtbu.Init() // 初始化您的套件
 
 	// 創建一個新的客戶端會話
@@ -30,11 +39,17 @@ func main() {
 	}
 
 	// 使用這個會話進行登入
-	username := ""
-	password := ""
+	username := os.Getenv("SDTBU_USERNAME")
+	password := os.Getenv("SDTBU_PASSWORD")
+
+	if username == "" || password == "" {
+		log.Fatalf(ASNIColor.Red + "錯誤: 環境變數 SDTBU_USERNAME 或 SDTBU_PASSWORD 未設定。" + ASNIColor.Reset)
+	}
+
 	err = session.Login(username, password)
 	if err != nil {
-		log.Fatalf("Login failed: %v", err)
+		// 登入失敗時，也使用帶有顏色的日誌
+		log.Fatalf(ASNIColor.Red+"登入失敗: %v"+ASNIColor.Reset, err)
 	}
 
 	//fmt.Println(ASNIColor.BrightWhite + ASNIColor.BgCyan + "Login successful!" + ASNIColor.Reset)
@@ -74,8 +89,8 @@ func main() {
 		return // 如果 CLINFO 為 nil，則不繼續執行後續的微信推送
 	}
 
-	fmt.Println(ASNIColor.BrightWhite + ASNIColor.BgCyan + "下節課程信息：" + ASNIColor.Reset)
-	fmt.Printf("%+v\n", CLINFO) // 使用 %+v 打印更詳細的 map 內容
+	// fmt.Println(ASNIColor.BrightWhite + ASNIColor.BgCyan + "下節課程信息：" + ASNIColor.Reset)
+	// fmt.Printf("%+v\n", CLINFO) // 使用 %+v 打印更詳細的 map 內容
 
 	// 從 CLINFO 中安全地提取課程資訊
 	courseNameVal, ok := CLINFO["KCMC"].(string)
