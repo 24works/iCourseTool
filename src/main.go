@@ -10,6 +10,9 @@ import (
 	"os"
 )
 
+// main is the entry point for the course reminder command-line tool.
+// It initializes the session, logs in using environment variables, retrieves and processes the user's course schedule, and sends a WeChat notification for the next upcoming class if available.
+// The function prints a banner, handles errors with colored output, and provides fallback values for missing or malformed course data.
 func main() {
 	fmt.Println(ASNIColor.BrightCyan + `
 =============================================================

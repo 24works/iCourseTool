@@ -33,7 +33,7 @@ const (
 // SemesterStartDate 定義學期第一週的第一天
 const SemesterStartDate = "2025.02.24" // 您可以根據實際情況修改此日期
 
-// Init 函數，用於初始化
+// Init prints an initialization message indicating the start of SDTBU operations.
 func Init() {
 	fmt.Println(Green + "SDTBU: Initializing..." + Reset)
 }
@@ -81,7 +81,8 @@ var classTimetable = []ClassSchedule{
 
 // GetFormattedClassTime 根據節次返回格式化的課程開始和結束時間。
 // lessonNumber: 課程的節次。
-// 返回格式如 "08:00-08:45" 的時間字符串，如果找不到則返回錯誤。
+// GetFormattedClassTime returns the formatted start and end time string for a given lesson number, such as "08:00-08:45".
+// Returns an error if the lesson number does not exist in the class timetable.
 func GetFormattedClassTime(lessonNumber int) (string, error) {
 	for _, schedule := range classTimetable {
 		if schedule.Lesson == lessonNumber {
@@ -91,7 +92,7 @@ func GetFormattedClassTime(lessonNumber int) (string, error) {
 	return "", fmt.Errorf(Yellow+"SDTBU: 未找到節次 %d 對應的時間表資訊。"+Reset, lessonNumber)
 }
 
-// goWeekdayToApiSkxq 將 Go 的 time.Weekday 轉換為系統使用的 SKXQ (1-7, 1=Mon, 7=Sun)
+// goWeekdayToApiSkxq converts a Go time.Weekday value to the system's weekday numbering, where Monday is 1 and Sunday is 7.
 func goWeekdayToApiSkxq(wd time.Weekday) int {
 	if wd == time.Sunday {
 		return 7 // 系統中星期日是 7
@@ -100,7 +101,8 @@ func goWeekdayToApiSkxq(wd time.Weekday) int {
 }
 
 // extractIntFromClassMap 安全地從 map[string]interface{} 中提取指定鍵的整數值。
-// 處理 JSON 數字可能解析為 float64 的情況。
+// extractIntFromClassMap retrieves an integer value from a map for the specified key, handling both float64 and int types commonly encountered in JSON data.
+// Returns the integer value and true if successful, or 0 and false if the key is missing or the value is not a numeric type.
 func extractIntFromClassMap(classMap map[string]interface{}, key string) (int, bool) {
 	val, ok := classMap[key]
 	if !ok {
@@ -116,7 +118,8 @@ func extractIntFromClassMap(classMap map[string]interface{}, key string) (int, b
 	}
 }
 
-// NewClientSession 函數用於創建並初始化一個新的 ClientSession
+// NewClientSession creates and initializes a new ClientSession with an HTTP client and cookie jar.
+// Returns an error if the cookie jar cannot be created.
 func NewClientSession() (*ClientSession, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {

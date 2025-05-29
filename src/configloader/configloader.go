@@ -8,6 +8,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// init attempts to load environment variables from the CourseTool.env file at package initialization.
+// If the file is not found or cannot be loaded, a warning is logged and system environment variables are used instead.
 func init() {
 	// Attempt to load .env file.
 	// This assumes CourseTool.env is in the same directory as the executable,
